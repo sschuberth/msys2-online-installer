@@ -1,7 +1,21 @@
 # Returns the URL and file name to the latest matching release as announced in the RSS feed.
 function GetLatestRelease($project, $path, $pattern, $limit = 200) {
-    $url = "http://sourceforge.net/projects/$project/rss?path=$path&limit=$limit"
-    $feed = [xml](Invoke-WebRequest $url)
+    # Generate a cache file name to save the feed to.
+    $file = [string]($project + $path)
+    foreach ($invalid in [System.IO.Path]::GetInvalidFileNameChars()) {
+        $file = $file.replace($invalid, '-')
+    }
+    $file = "$PSScriptRoot\downloads\feed-$file.xml"
+
+    if (!(Test-Path $file) -or ((Get-Date) - (Get-Item $file).LastWriteTime) -gt (New-TimeSpan -Days 1)) {
+        $url = "http://sourceforge.net/projects/$project/rss?path=$path&limit=$limit"
+        $feed = [xml](Invoke-WebRequest $url)
+        $feed.save($file)
+    } else {
+        Write-Host "Using cached feed for $project."
+        $feed = [xml](Get-Content $file)
+    }
+
     $item = $feed.rss.channel.item | Where-Object { $_.title.InnerText -CMatch $pattern } | Select-Object -First 1
     return $item.link, [System.IO.Path]::GetFileName($item.title.InnerText)
 }
