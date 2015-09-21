@@ -41,10 +41,7 @@ function DownloadMSYS2Package($package) {
 }
 
 function ExtractMSYS2Package($file) {
-    $7zip = "$PSScriptRoot\downloads\7z.exe"
-    Start-Process -FilePath $7zip -ArgumentList x,"-o$PSScriptRoot\downloads",-y,"$file" -NoNewWindow -Wait
-    $tar = [System.IO.Path]::GetFileNameWithoutExtension($file)
-    Start-Process -FilePath $7zip -ArgumentList x,"-o$PSScriptRoot\downloads\root","-x!.INSTALL","-x!.MTREE","-x!.PKGINFO",-y,"$PSScriptRoot\downloads\$tar" -NoNewWindow -Wait
+    & "$PSScriptRoot\7z-extract-tar.cmd" $file "$PSScriptRoot\downloads\root"
 }
 
 # Download 7-Zip and extract 7z.exe for unpacking *.tar.xz archives.
