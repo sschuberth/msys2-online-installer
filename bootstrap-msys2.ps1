@@ -1,3 +1,6 @@
+$is_64bit = (Get-WMIObject Win32_OperatingSystem).OSArchitecture.equals('64-bit')
+$arch = @('i686', 'x86_64')[$is_64bit]
+
 # Returns the URL and file name to the latest matching release as announced in the RSS feed.
 function GetLatestRelease($project, $path, $pattern, $limit = 200) {
     # Generate a cache file name to save the feed to.
@@ -43,9 +46,6 @@ function ExtractMSYS2Package($file) {
     $tar = [System.IO.Path]::GetFileNameWithoutExtension($file)
     Start-Process -FilePath $7zip -ArgumentList x,"-o$PSScriptRoot\downloads\root","-x!.MTREE","-x!.PKGINFO",-y,"$PSScriptRoot\downloads\$tar" -NoNewWindow -Wait
 }
-
-$is_64bit = (Get-WMIObject Win32_OperatingSystem).OSArchitecture.equals('64-bit')
-$arch = @('i686', 'x86_64')[$is_64bit]
 
 # Download 7-Zip and extract 7z.exe for unpacking *.tar.xz archives.
 $pattern = @('7z[0-9]+\.exe', '7z[0-9]+-x64\.exe')[$is_64bit]
