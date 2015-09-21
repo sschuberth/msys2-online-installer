@@ -35,7 +35,7 @@ function DownloadIfNotExists($url, $file) {
 }
 
 function DownloadMSYS2Package($package) {
-    $pattern = "$package-[0-9\.]+-[0-9]+-$arch\.pkg\.tar\.xz$"
+    $pattern = "[.*/^]$package-[0-9\.]+-[0-9]+-$arch\.pkg\.tar\.xz$"
     $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
     return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
 }
@@ -45,7 +45,7 @@ function ExtractMSYS2Package($file) {
 }
 
 # Download 7-Zip and extract 7z.exe for unpacking *.tar.xz archives.
-$pattern = @('7z[0-9]+\.exe$', '7z[0-9]+-x64\.exe$')[$is_64bit]
+$pattern = @('[.*/^]7z[0-9]+\.exe$', '[.*/^]7z[0-9]+-x64\.exe$')[$is_64bit]
 $release = GetLatestRelease 'sevenzip' '/7-Zip' $pattern
 $7zip = DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
 
