@@ -20,7 +20,11 @@ function GetLatestRelease($project, $path, $pattern, $limit = 200) {
     }
 
     $item = $feed.rss.channel.item | Where-Object { $_.title.InnerText -CMatch $pattern } | Select-Object -First 1
-    return $item.link, [System.IO.Path]::GetFileName($item.title.InnerText)
+    if ($item) {
+        return $item.link, [System.IO.Path]::GetFileName($item.title.InnerText)
+    } else {
+        return $null
+    }
 }
 
 function DownloadIfNotExists($url, $file) {
@@ -35,9 +39,15 @@ function DownloadIfNotExists($url, $file) {
 }
 
 function DownloadMSYS2Package($package) {
-    $pattern = "[.*/^]$package-[0-9\.]+-[0-9]+-$arch\.pkg\.tar\.xz$"
-    $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
-    return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
+    foreach ($pkg_arch in @($arch, 'any')) {
+        $pattern = "[.*/^]$package-r?[0-9\.]+-[0-9]+-$pkg_arch\.pkg\.tar\.xz$"
+        $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
+        if ($release) {
+            return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
+        }
+    }
+
+    return $null
 }
 
 function ExtractMSYS2Package($file) {
@@ -60,5 +70,9 @@ $packages = Get-Content "$PSScriptRoot\pacman-dependencies.txt"
 
 foreach ($package in $packages) {
     $file = DownloadMSYS2Package $package
-    ExtractMSYS2Package $file
+    if ($file) {
+        ExtractMSYS2Package $file
+    } else {
+        Write-Error "Downloading the '$package' package failed."
+    }
 }
