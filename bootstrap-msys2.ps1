@@ -40,7 +40,7 @@ function DownloadIfNotExists($url, $file) {
 
 function DownloadMSYS2Package($package) {
     foreach ($pkg_arch in @($arch, 'any')) {
-        $pattern = "[.*/^]$package-r?[0-9\.]+-[0-9]+-$pkg_arch\.pkg\.tar\.xz$"
+        $pattern = "[.*/^]$package-r?[0-9\.a-z]+-[0-9]+-$pkg_arch\.pkg\.tar\.xz$"
         $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
         if ($release) {
             return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
