@@ -44,12 +44,10 @@ function DownloadIfNotExists($url, $file) {
 
 # Determines the URL for the given package and downloads it.
 function DownloadMSYS2Package($package) {
-    foreach ($pkg_arch in @($arch, 'any')) {
-        $pattern = "[.*/^]$package-r?[0-9\.a-z]+-[0-9]+-$pkg_arch\.pkg\.tar\.xz$"
-        $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
-        if ($release) {
-            return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
-        }
+    $pattern = "[.*/^]$package-r?[0-9\.a-z]+-[0-9]+-($arch|any)\.pkg\.tar\.xz$"
+    $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
+    if ($release) {
+        return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
     }
 
     return $null
