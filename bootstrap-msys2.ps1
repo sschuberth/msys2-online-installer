@@ -18,7 +18,7 @@ function GetLatestRelease($project, $path, $pattern, $limit = 200) {
         $feed = [xml](Invoke-WebRequest $url)
         $feed.save($file)
     } else {
-        Write-Host "Using cached feed for $project."
+        Write-Host "Using cached $project feed to look for pattern '$pattern'."
         $feed = [xml](Get-Content $file)
     }
 
