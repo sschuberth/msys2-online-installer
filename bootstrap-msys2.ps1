@@ -33,8 +33,12 @@ function GetLatestRelease($project, $path, $pattern, $limit = 200) {
 # Downloads the file from the given URL if it does not yet exist locally.
 function DownloadIfNotExists($url, $file) {
     if (!(Test-Path $file)) {
-        # Use a fake UserAgent to make the SourceForge redirection work.
-        Invoke-WebRequest $url -OutFile $file -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox -Verbose
+        try {
+            # Use a fake UserAgent to make the SourceForge redirection work.
+            Invoke-WebRequest $url -OutFile $file -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox -Verbose
+        } catch {
+            return $null
+        }
     } else {
         Write-Host "Skipping download, $([System.IO.Path]::GetFileName($file)) already exists."
     }
@@ -47,7 +51,12 @@ function DownloadMSYS2Package($package) {
     $pattern = "[.*/^]$package-r?[0-9\.a-z]+-[0-9]+-($arch|any)\.pkg\.tar\.xz$"
     $release = GetLatestRelease 'msys2' "/REPOS/MSYS2/$arch" $pattern 5000
     if ($release) {
-        return DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
+        # Try to download from the faster repo.msys2.org server first, and only use SourceForge as the fallback.
+        $file = DownloadIfNotExists "http://repo.msys2.org/msys/$arch/$($release[1])" ($PSScriptRoot + '\downloads\' + $release[1])
+        if (!$file) {
+            $file = DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
+        }
+        return $file
     }
 
     return $null
@@ -62,6 +71,10 @@ function ExtractMSYS2Package($file) {
 $pattern = @('[.*/^]7z[0-9]+\.exe$', '[.*/^]7z[0-9]+-x64\.exe$')[$is_64bit]
 $release = GetLatestRelease 'sevenzip' '/7-Zip' $pattern
 $7zip = DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
+if (!$7zip) {
+    Write-Error "Downloading 7-Zip failed."
+    exit 1
+}
 
 # Wait until the 7-Zip installer has finished to extract the required files, copy them
 # and clean up afterwards.
