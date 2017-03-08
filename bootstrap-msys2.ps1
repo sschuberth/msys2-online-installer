@@ -1,3 +1,6 @@
+# This script creates a minimal MSYS2 "root file system" that contains just enough to run pacman
+# in order to use it to install more packages later.
+
 $is_64bit = (Get-WMIObject Win32_OperatingSystem).OSArchitecture.equals('64-bit')
 $arch = @('i686', 'x86_64')[$is_64bit]
 
@@ -27,6 +30,7 @@ function GetLatestRelease($project, $path, $pattern, $limit = 200) {
     }
 }
 
+# Downloads the file from the given URL if it does not yet exist locally.
 function DownloadIfNotExists($url, $file) {
     if (!(Test-Path $file)) {
         # Use a fake UserAgent to make the SourceForge redirection work.
@@ -38,6 +42,7 @@ function DownloadIfNotExists($url, $file) {
     return $file
 }
 
+# Determines the URL for the given package and downloads it.
 function DownloadMSYS2Package($package) {
     foreach ($pkg_arch in @($arch, 'any')) {
         $pattern = "[.*/^]$package-r?[0-9\.a-z]+-[0-9]+-$pkg_arch\.pkg\.tar\.xz$"
@@ -59,13 +64,14 @@ $pattern = @('[.*/^]7z[0-9]+\.exe$', '[.*/^]7z[0-9]+-x64\.exe$')[$is_64bit]
 $release = GetLatestRelease 'sevenzip' '/7-Zip' $pattern
 $7zip = DownloadIfNotExists $release[0] ($PSScriptRoot + '\downloads\' + $release[1])
 
-# Wait until the installer has finished to copy the required files.
+# Wait until the 7-Zip installer has finished to extract the required files, copy them
+# and clean up afterwards.
 Start-Process -FilePath "$7zip" -ArgumentList /D="$PSScriptRoot\downloads\7z-tmp",/S -Wait
 Copy-Item "$PSScriptRoot\downloads\7z-tmp\7z.*" "$PSScriptRoot\downloads"
 
 & "$PSScriptRoot\downloads\7z-tmp\Uninstall.exe" /S
 
-# Download pacman and its dependencies (as determined by 'pactree -u pacman').
+# Download pacman and its dependencies (as determined by 'pactree -u pacman | sort').
 $packages = Get-Content "$PSScriptRoot\pacman-dependencies.txt"
 
 foreach ($package in $packages) {
