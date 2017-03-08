@@ -84,7 +84,7 @@ Copy-Item "$PSScriptRoot\downloads\7z-tmp\7z.*" "$PSScriptRoot\downloads"
 & "$PSScriptRoot\downloads\7z-tmp\Uninstall.exe" /S
 
 # Download pacman and its dependencies (as determined by 'pactree -u pacman | sort').
-$packages = Get-Content "$PSScriptRoot\pacman-dependencies.txt"
+$packages = Get-Content "$PSScriptRoot\dependencies-pacman.txt"
 
 foreach ($package in $packages) {
     $file = DownloadMSYS2Package $package
