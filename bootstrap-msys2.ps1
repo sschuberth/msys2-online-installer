@@ -84,15 +84,13 @@ Copy-Item "$PSScriptRoot\downloads\7z-tmp\7z.*" "$PSScriptRoot\downloads"
 & "$PSScriptRoot\downloads\7z-tmp\Uninstall.exe" /S
 
 # Download core packages and their dependencies (as determined by 'pactree -u <package> | sort').
-foreach ($dependencies_file in Get-ChildItem "$PSScriptRoot\dependencies-*.txt") {
-    $packages = Get-Content $dependencies_file
+$packages = Get-Content "$PSScriptRoot\dependencies-*.txt" | Sort-Object -Unique
 
-    foreach ($package in $packages) {
-        $file = DownloadMSYS2Package $package
-        if ($file) {
-            ExtractMSYS2Package $file
-        } else {
-            Write-Error "Downloading the '$package' package failed."
-        }
+foreach ($package in $packages) {
+    $file = DownloadMSYS2Package $package
+    if ($file) {
+        ExtractMSYS2Package $file
+    } else {
+        Write-Error "Downloading the '$package' package failed."
     }
 }
