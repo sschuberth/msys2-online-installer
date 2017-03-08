@@ -1,0 +1,15 @@
+bash
+coreutils
+gcc-libs
+gettext
+gmp
+libasprintf
+libgettextpo
+libiconv
+libintl
+liblzma
+libreadline
+libxml2
+msys2-runtime
+ncurses
+zlib
