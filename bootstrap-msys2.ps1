@@ -56,6 +56,7 @@ function DownloadMSYS2Package($package) {
 }
 
 function ExtractMSYS2Package($file) {
+    Write-Host "Extracting package $([System.IO.Path]::GetFileName($file))..."
     & "$PSScriptRoot\7z-extract-tar.cmd" $file "$PSScriptRoot\downloads\root"
 }
 
